@@ -161,6 +161,7 @@ module.exports = {
     if (response.error) {
       console.log("RESPONSE ERROR getWSDeviceStatus() , this.wsp.onMessage.addListener()");
       console.log(response.error);
+      console.log(response);
       throw new Error(errors[response.error]);
     }
 
