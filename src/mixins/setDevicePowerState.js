@@ -26,6 +26,7 @@ module.exports = {
     const switchesAmount = getDeviceChannelCount(uiid);
     
     console.log('EWELINK-API - setDevicePowerState.js - setDevicePowerState()' );
+    console.log(channel);
     console.log(status);
     console.log(switches);
 
