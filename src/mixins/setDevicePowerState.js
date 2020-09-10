@@ -24,6 +24,10 @@ module.exports = {
     const switches = _get(device, 'params.switches', false);
 
     const switchesAmount = getDeviceChannelCount(uiid);
+    
+    console.log('EWELINK-API - setDevicePowerState.js - setDevicePowerState()' );
+    console.log(status);
+    console.log(switches);
 
     if (switchesAmount > 0 && switchesAmount < channel) {
       return { error: 404, msg: errors.ch404 };
