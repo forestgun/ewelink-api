@@ -284,7 +284,7 @@ module.exports = {
       } catch (error) {
         throw new Error(error);
       } finally {
-        await this.webSocketClose();
+        //await this.webSocketClose();
       }
       return {
         status: 'ok',
