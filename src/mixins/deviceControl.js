@@ -5,6 +5,11 @@ const delay = require('delay');
 const { nonce, timestamp } = require('../helpers/utilities');
 const errors = require('../data/errors');
 
+
+const { getDevicePowerState } = require('./getDevicePowerState');
+
+const { setDevicePowerState } = require('./setDevicePowerState');
+
 const {
   VALID_POWER_STATES,
   getNewPowerState,
@@ -228,7 +233,7 @@ module.exports = {
     }
 
     // get extra parameters
-    const { channel = 1, shared = false } = options;
+    const { channel = 1, shared = false, wsConnect = true } = options;
 
     // if device is shared by other account, fetch device api key
     if (shared) {
@@ -237,39 +242,56 @@ module.exports = {
     }
 
     // get device current state
-    const status = await this.getWSDeviceStatus(deviceId, [
-      'switch',
-      'switches',
-    ]);
+    if (wsConnect) {
+      const status = await this.getWSDeviceStatus(deviceId, [
+        'switch',
+        'switches',
+      ]);
 
-    // check for multi-channel device
-    const multiChannelDevice = !!status.params.switches;
+      // check for multi-channel device
+      const multiChannelDevice = !!status.params.switches;
 
-    // get current device state
-    const currentState = multiChannelDevice
-      ? status.params.switches[channel - 1].switch
-      : status.params.switch;
+      // get current device state
+      const currentState = multiChannelDevice
+        ? status.params.switches[channel - 1].switch
+        : status.params.switch;
 
-    // resolve new power state
-    const stateToSwitch = getNewPowerState(currentState, state);
+      // resolve new power state
+      const stateToSwitch = getNewPowerState(currentState, state);
 
-    // build request payload
-    const params = getPowerStateParams(status.params, stateToSwitch, channel);
+      // build request payload
+      const params = getPowerStateParams(status.params, stateToSwitch, channel);
 
-    // change device status
-    try {
-      await this.updateDeviceStatus(deviceId, params);
-      await delay(this.wsDelayTime);
-    } catch (error) {
-      throw new Error(error);
-    } finally {
-      await this.webSocketClose();
+      // change device status
+      try {
+        await this.updateDeviceStatus(deviceId, params);
+        await delay(this.wsDelayTime);
+      } catch (error) {
+        throw new Error(error);
+      } finally {
+        await this.webSocketClose();
+      }
+
+      return {
+        status: 'ok',
+        state: stateToSwitch,
+        channel: multiChannelDevice ? channel : 1,
+      };
+    } else {
+      // change device status
+      try {
+        await setDevicePowerState(deviceId, state, channel);
+      } catch (error) {
+        throw new Error(error);
+      } finally {
+        await this.webSocketClose();
+      }
+      return {
+        status: 'ok',
+        deviceId: deviceId,  
+        channel: channel,
+      };
+
     }
-
-    return {
-      status: 'ok',
-      state: stateToSwitch,
-      channel: multiChannelDevice ? channel : 1,
-    };
   },
 };
