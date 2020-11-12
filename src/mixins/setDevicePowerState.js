@@ -84,6 +84,8 @@ module.exports = {
     const responseError = _get(response, 'error', false);
 
     if (responseError) {
+      console.log('EWELINK-API - setDevicePowerState.js - setDevicePowerState() ERROR => ');
+      console.log(response);
       return { error: responseError, msg: errors[responseError] };
     }
 
