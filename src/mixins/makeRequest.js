@@ -40,16 +40,25 @@ module.exports = {
 
     const queryString = !_empty(qs) ? toQueryString(qs) : '';
     const requestUrl = `${apiUrl}${uri}${queryString}`;
+    
+    // Bloque para evitar error de json con string < 
+    let request = await fetch(requestUrl, payload);
+    let contentType = request.headers.get("content-type");
 
-    const request = await fetch(requestUrl, payload);
-    const response = await request.json();
+    while(!(contentType && contentType.indexOf("application/json") !== -1)) {
+        request = await fetch(requestUrl, payload);
+        contentType = request.headers.get("content-type");
+    }
+    // fin Bloque
 
-    const error = _get(response, 'error', false);
+    //const request = await fetch(requestUrl, payload);
 
-    if (error) {
-      return { error, msg: errors[error] };
+    if (!request.ok) {
+      return { error: request.status, msg: errors[request.status] };
     }
 
-    return response;
+    const response = await request.json();
+
+    return response
   },
 };
